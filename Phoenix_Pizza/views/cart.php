@@ -1,51 +1,67 @@
-<?php
-// views/cart.php
-use PhoenixPizza\Cart;
-Cart::start();
-$items = Cart::items();
-$totals = Cart::totals();
-?>
-<h2 class="mb-3">Your Cart</h2>
-<?php if (empty($items)): ?>
-  <div class="alert alert-info">Your cart is empty. Visit the <a href="<?php echo htmlspecialchars(PP_BASE_URL . 'index.php?route=menu'); ?>">Menu</a> to add items.</div>
-<?php else: ?>
-  <div class="table-responsive">
-    <table class="table align-middle">
-      <thead><tr><th>Item</th><th>Size</th><th>Qty</th><th class="text-end">Unit</th><th class="text-end">Line</th><th></th></tr></thead>
-      <tbody>
-      <?php foreach ($items as $sig => $it): ?>
-        <tr>
-          <td><?php echo htmlspecialchars($it['name']); ?></td>
-          <td><?php echo htmlspecialchars(ucfirst($it['size'])); ?></td>
-          <td style="max-width:100px">
-            <form method="post" action="<?php echo htmlspecialchars(PP_BASE_URL . 'cart.php?action=update'); ?>" class="d-flex gap-2">
-              <input type="hidden" name="signature" value="<?php echo htmlspecialchars($sig); ?>">
-              <input class="form-control form-control-sm" type="number" min="0" name="qty" value="<?php echo (int)$it['qty']; ?>">
-              <button class="btn btn-outline-secondary btn-sm">Update</button>
-            </form>
-          </td>
-          <td class="text-end">$<?php echo number_format($it['unit_price'], 2); ?></td>
-          <td class="text-end">$<?php echo number_format($it['line_total'], 2); ?></td>
-          <td class="text-end">
-            <form method="post" action="<?php echo htmlspecialchars(PP_BASE_URL . 'cart.php?action=remove'); ?>">
-              <input type="hidden" name="signature" value="<?php echo htmlspecialchars($sig); ?>">
-              <button class="btn btn-outline-danger btn-sm">Remove</button>
-            </form>
-          </td>
-        </tr>
-      <?php endforeach; ?>
-      </tbody>
-    </table>
-  </div>
-  <div class="d-flex justify-content-end">
-    <div class="card" style="min-width: 320px;">
-      <div class="card-body">
-        <div class="d-flex justify-content-between"><span>Subtotal</span><span>$<?php echo number_format($totals['subtotal'], 2); ?></span></div>
-        <div class="d-flex justify-content-between"><span>Tax</span><span>$<?php echo number_format($totals['tax'], 2); ?></span></div>
-        <hr>
-        <div class="d-flex justify-content-between fw-bold"><span>Total</span><span>$<?php echo number_format($totals['total'], 2); ?></span></div>
-        <a class="btn btn-success w-100 mt-3" href="<?php echo htmlspecialchars(PP_BASE_URL . 'index.php?route=checkout'); ?>">Proceed to Checkout</a>
-      </div>
-    </div>
-  </div>
-<?php endif; ?>
+<?php include 'templates/header.php'; ?>
+
+<div class="container mt-5">
+    <h2>Your Cart</h2>
+
+    <?php if (empty($items)): ?>
+        <div class="alert alert-warning">
+            Your cart is empty.
+        </div>
+        <a href="?route=menu" class="btn btn-secondary">Back to Menu</a>
+    <?php else: ?>
+        <table class="table table-bordered align-middle">
+            <thead>
+                <tr>
+                    <th>Pizza</th>
+                    <th>Size</th>
+                    <th>Toppings</th>
+                    <th>Qty</th>
+                    <th>Unit Price</th>
+                    <th>Line Total</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($items as $key => $item): ?>
+                    <?php $lineTotal = $item['unit_price'] * $item['qty']; ?>
+                    <tr>
+                        <td><?= htmlspecialchars($item['name']) ?></td>
+                        <td><?= htmlspecialchars(ucfirst($item['size'])) ?></td>
+                        <td>
+                            <div class="text-muted small">
+                                <?= empty($item['toppings']) ? 'None' : implode(', ', $item['toppings']) ?>
+                            </div>
+                        </td>
+                        <td style="width: 120px;">
+                            <form action="?route=cart_update" method="POST" class="d-flex">
+                                <input type="hidden" name="key" value="<?= htmlspecialchars($key) ?>">
+                                <input type="number" name="qty" value="<?= $item['qty'] ?>" min="1" class="form-control form-control-sm me-1">
+                                <button type="submit" class="btn btn-sm btn-outline-primary">Update</button>
+                            </form>
+                        </td>
+                        <td>$<?= number_format($item['unit_price'], 2) ?></td>
+                        <td>$<?= number_format($lineTotal, 2) ?></td>
+                        <td>
+                            <a href="?route=cart_remove&key=<?= urlencode($key) ?>" class="btn btn-sm btn-danger">
+                                Remove
+                            </a>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+
+        <div class="text-end">
+            <p><strong>Subtotal:</strong> $<?= $totals['subtotal'] ?></p>
+            <p><strong>Tax:</strong> $<?= $totals['tax'] ?></p>
+            <p><strong>Total:</strong> $<?= $totals['total'] ?></p>
+        </div>
+
+        <div class="mt-3 d-flex justify-content-between">
+            <a href="?route=menu" class="btn btn-secondary">Continue Shopping</a>
+            <a href="?route=checkout" class="btn btn-success">Proceed to Checkout</a>
+        </div>
+    <?php endif; ?>
+</div>
+
+<?php include 'templates/footer.php'; ?>
