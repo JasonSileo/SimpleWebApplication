@@ -30,11 +30,6 @@ switch ($route) {
         $controller->index();
         break;
 
-    case 'checkout':
-        $controller = new \PhoenixPizza\controllers\CheckoutController();
-        $controller->index();
-        break;
-
     case 'cart_add':
         $controller = new \PhoenixPizza\controllers\CartController();
         $controller->add();
@@ -50,6 +45,22 @@ switch ($route) {
         $controller->update();
         break;
 
+
+    case 'checkout':
+        $controller = new \PhoenixPizza\controllers\CheckoutController();
+        $controller->index();
+        break;
+
+    case 'checkout_submit':
+        $controller = new \PhoenixPizza\controllers\CheckoutController();
+        $controller->submit();
+        break;
+
+    case 'order_confirm':
+        $controller = new \PhoenixPizza\controllers\CheckoutController();
+        $controller->confirm();
+        break;
+        
     case 'home':
     default:
         include __DIR__ . '/../views/home.php';

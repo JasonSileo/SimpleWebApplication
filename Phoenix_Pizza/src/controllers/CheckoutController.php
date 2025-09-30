@@ -6,32 +6,53 @@ class CheckoutController
 {
     public function index()
     {
-        $cart = $_SESSION['cart'] ?? [];
-
-        $totals = $this->calculateTotals($cart);
-
-        $this->render('checkout', [
-            'items' => $cart,
-            'totals' => $totals,
-            'pageTitle' => 'Checkout'
-        ]);
+        $this->render('checkout');
     }
 
-    private function calculateTotals($cart)
+    public function submit()
     {
-        $subtotal = 0;
-        foreach ($cart as $item) {
-            $subtotal += 14.99 * $item['qty']; // example static price
+        session_start();
+
+        // Validate input
+        $name = trim($_POST['name'] ?? '');
+        $phone = trim($_POST['phone'] ?? '');
+        $address = trim($_POST['address'] ?? '');
+
+        if (!$name || !$phone || !$address) {
+            $_SESSION['error'] = 'All fields are required.';
+            header('Location: ?route=checkout');
+            exit;
         }
 
-        $tax = round($subtotal * 0.08, 2);
-        $total = $subtotal + $tax;
-
-        return [
-            'subtotal' => number_format($subtotal, 2),
-            'tax' => number_format($tax, 2),
-            'total' => number_format($total, 2)
+        // Save order (in session for now)
+        $_SESSION['order'] = [
+            'name' => $name,
+            'phone' => $phone,
+            'address' => $address,
+            'cart' => $_SESSION['cart'] ?? [],
+            'time' => date('Y-m-d H:i:s')
         ];
+
+        // Clear cart
+        unset($_SESSION['cart']);
+
+        // Redirect to confirmation
+        header('Location: ?route=order_confirm');
+        exit;
+    }
+
+    public function confirm()
+    {
+        session_start();
+
+        $order = $_SESSION['order'] ?? null;
+
+        if (!$order) {
+            header('Location: ?route=menu');
+            exit;
+        }
+
+        $this->render('order_confirm', ['order' => $order]);
     }
 
     private function render($view, $vars = [])
